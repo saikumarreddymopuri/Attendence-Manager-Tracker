@@ -1,23 +1,25 @@
 @import "tailwindcss";
 
-/* 1. Theme Configuration (v4 style) */
 @theme {
-  --color-midnight: #0f172a;
-  --color-glass: rgba(255, 255, 255, 0.1);
+  /* Colors - Pure & Professional */
+  --color-midnight: #0a0f1d;       /* Main Background */
+  --color-card: #151c2e;           /* Card Background */
+  --color-neon-cyan: #06b6d4;      /* Pure Cyan */
+  --color-neon-purple: #8b5cf6;    /* Soft Purple */
 }
 
-/* 2. Proper Dark Mode Setup (Class-based) */
-/* Idi use chesthe, HTML lo .dark class unte automatic ga mode marthundi */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* 3. Global Smooth Transitions */
 @layer base {
   body {
-    @apply transition-colors duration-500 ease-in-out bg-slate-50 text-slate-900 dark:bg-midnight dark:text-slate-100;
+    @apply bg-midnight text-slate-200 antialiased;
   }
 }
 
-/* 4. Professional Glassmorphism Utility */
-.glass-effect {
-  @apply backdrop-blur-xl border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/20 shadow-xl;
+/* Glass Effect for Premium Look */
+.glass-panel {
+  @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-2xl;
+}
+
+/* Specific Border Glow */
+.cyan-glow-border {
+  @apply border border-neon-cyan/30 focus:border-neon-cyan focus:ring-4 focus:ring-neon-cyan/10 transition-all;
 }

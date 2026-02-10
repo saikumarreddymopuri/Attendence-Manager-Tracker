@@ -1,77 +1,44 @@
+// SubjectCard.jsx
 import SubjectPie from "./SubjectPie";
 
 const STATUS_COLORS = {
-  SAFE: "#4caf50",
-  BORDER: "#ff9800",
-  DANGER: "#f44336",
+  SAFE: "var(--color-neon-cyan)",
+  BORDER: "#f59e0b",
+  DANGER: "#ef4444",
 };
 
 export default function SubjectCard({ data }) {
-  const percentage = Math.round(
-    (data.attended / data.totalClasses) * 100
-  );
-
-  const color = STATUS_COLORS[data.status];
+  const percentage = Math.round((data.attended / data.totalClasses) * 100);
+  const color = STATUS_COLORS[data.status] || "var(--color-neon-cyan)";
 
   return (
-    <div
-      style={{
-        border: `2px solid ${color}`,
-        borderRadius: 8,
-        padding: 14,
-        marginBottom: 14,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      {/* LEFT */}
-      <div>
-        <h3 style={{ marginBottom: 6 }}>
+    <div className="glass-panel p-5 rounded-3xl flex justify-between items-center group hover:border-white/20 transition-all border border-transparent">
+      <div className="flex-1">
+        <h3 className="text-white font-bold text-lg leading-tight group-hover:text-neon-cyan transition-colors">
           {data.subject}
         </h3>
-
-        <div
-          style={{
-            fontSize: 24,
-            fontWeight: "bold",
-            color,
-            marginBottom: 6,
-          }}
-        >
-          {percentage}%
+        
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-2xl font-black" style={{ color }}>{percentage}%</span>
+          <span className="text-xs text-slate-500 font-medium">{data.attended}/{data.totalClasses} classes</span>
         </div>
 
-        <div style={{ marginBottom: 6 }}>
-          <strong>{data.attended}</strong> /{" "}
-          <strong>{data.totalClasses}</strong>{" "}
-          classes attended
-        </div>
-
-        <div>
-          <strong>Safe Miss Left:</strong>{" "}
-          {data.safeMissLeft}
-        </div>
-
-        <div>
-          <strong>Need to Attend:</strong>{" "}
-          {data.classesToAttendMore}
-        </div>
-
-        <div>
-          Status:{" "}
-          <strong style={{ color }}>
-            {data.status}
-          </strong>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="text-[10px] px-2 py-1 bg-white/5 rounded-md text-slate-400 font-bold">
+            Safe Miss: {data.safeMissLeft}
+          </span>
+          <span className="text-[10px] px-2 py-1 bg-white/5 rounded-md text-slate-400 font-bold">
+            Required: {data.classesToAttendMore}
+          </span>
         </div>
       </div>
 
-      {/* RIGHT */}
-      <SubjectPie
-        attended={data.attended}
-        needToAttend={data.classesToAttendMore}
-        color={color}   // 🔥 pass same color
-      />
+      <div className="relative">
+        <SubjectPie attended={data.attended} total={data.totalClasses} color={color} />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-8 h-8 rounded-full bg-midnight blur-[10px]" />
+        </div>
+      </div>
     </div>
   );
 }

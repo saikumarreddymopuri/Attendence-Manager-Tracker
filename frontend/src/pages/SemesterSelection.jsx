@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-// import BackButton from "../components/Common/BackButton";
 
 export default function SemesterSelection() {
   const [semesters, setSemesters] = useState([]);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // Modal state added
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -17,70 +17,121 @@ export default function SemesterSelection() {
   useEffect(() => {
     const fetchSemesters = async () => {
       const token = localStorage.getItem("token");
-
-      const res = await axios.get(
-        "http://localhost:5000/api/semesters",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSemesters(res.data);
+      try {
+        const res = await axios.get("http://localhost:5000/api/semesters", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSemesters(res.data);
+      } catch (err) {
+        console.error("Fetch semesters failed", err);
+      }
     };
-
     fetchSemesters();
   }, []);
 
   return (
-    
-    <div style={{ maxWidth: 500, margin: "60px auto" }}>
-      {/* 🔐 LOGOUT BUTTON */}
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            background: "#f44336",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-        <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>Glad to see you back <p style={{ margin: 0, color: "#555" }}>{user?.name}👋</p> </h2>
+    <div className="min-h-screen w-full bg-midnight p-6 flex flex-col items-center">
+      {/* Background Decor */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[10%] left-[5%] w-[300px] h-[300px] bg-neon-cyan/5 rounded-full blur-[120px]"></div>
       </div>
-      {/* <BackButton /> */}
-      <h2>Select Semester</h2>
-      
 
-      {semesters.map((sem) => (
-        <div
-          key={sem._id}
-          onClick={() =>
-            navigate(`/semester/${sem._id}/dashboard`)
-          }
-          style={{
-            padding: 12,
-            border: "1px solid #ccc",
-            borderRadius: 6,
-            marginBottom: 10,
-            cursor: "pointer",
-          }}
-        >
-          <strong>{sem.name}</strong>
-          <div style={{ fontSize: 12, color: "#666" }}>
-            {new Date(sem.startDate).toLocaleDateString()} –{" "}
-            {new Date(sem.endDate).toLocaleDateString()}
+      <div className="w-full max-w-2xl">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-10 glass-panel p-6 rounded-2xl">
+          <div>
+            <h2 className="text-xl font-medium text-slate-400">
+              Glad to see you back,
+            </h2>
+            <h1 className="text-3xl font-black text-white leading-tight">
+              {user?.name} <span className="text-neon-cyan text-2xl">👋</span>
+            </h1>
+          </div>
+          <button
+            onClick={() => setShowLogoutModal(true)} // Open modal instead of direct logout
+            className="px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all duration-300 cursor-pointer text-sm"
+          >
+            Logout
+          </button>
+        </div>
+
+        <h2 className="text-white text-lg font-bold mb-6 px-2 uppercase tracking-widest flex items-center gap-2">
+          <span className="w-8 h-[2px] bg-neon-cyan"></span> Select Semester
+        </h2>
+
+        {/* Semester List Grid */}
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+          {semesters.map((sem) => (
+            <div
+              key={sem._id}
+              onClick={() => navigate(`/semester/${sem._id}/dashboard`)}
+              className="glass-panel p-6 rounded-2xl cursor-pointer hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-neon-cyan/5 rounded-full blur-2xl group-hover:bg-neon-cyan/10 transition-colors"></div>
+
+              <strong className="text-xl text-white group-hover:text-neon-cyan transition-colors">
+                {sem.name}
+              </strong>
+
+              <div className="mt-4 space-y-1">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  <span>Timeline (DD/MM/YYYY)</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-300">
+                  <span className="bg-white/5 px-3 py-1 rounded-lg border border-white/5">
+                    {new Date(sem.startDate).toLocaleDateString("en-GB")}
+                  </span>
+                  <span className="text-neon-cyan/50">—</span>
+                  <span className="bg-white/5 px-3 py-1 rounded-lg border border-white/5">
+                    {new Date(sem.endDate).toLocaleDateString("en-GB")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Add New Semester Card */}
+          <button
+            onClick={() => navigate("/add-semester")}
+            className="border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 text-slate-500 hover:border-neon-cyan/50 hover:text-neon-cyan transition-all group cursor-pointer min-h-[140px]"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-neon-cyan/10 transition-all">
+              <span className="text-2xl font-bold">+</span>
+            </div>
+            <span className="font-bold text-sm">Add New Semester</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 🔐 STYLISH LOGOUT MODAL - Center of Screen */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-midnight/80 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="w-full max-w-sm glass-panel p-10 rounded-[3rem] border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in duration-300">
+            <div className="text-center">
+              <div className="text-5xl mb-6">👋</div>
+              <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Logging Out?</h2>
+              <p className="text-slate-400 text-sm mb-10 font-medium">
+                Do you really want to leave, buddy?
+              </p>
+              
+              <div className="flex flex-col gap-4">
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-4 rounded-2xl bg-red-500 text-white font-black uppercase tracking-widest text-[11px] hover:bg-red-600 transition-all shadow-lg shadow-red-500/30 active:scale-95 cursor-pointer"
+                >
+                  Yes, Logout
+                </button>
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="w-full py-4 rounded-2xl bg-white/5 text-slate-400 font-black uppercase tracking-widest text-[11px] hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      ))}
-
-      <button
-        onClick={() => navigate("/add-semester")}
-        style={{ marginTop: 20 }}
-      >
-        + Add New Semester
-      </button>
+      )}
     </div>
   );
 }

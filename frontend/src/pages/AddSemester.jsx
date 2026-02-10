@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BackButton from "../components/Common/BackButton";
 import axios from "axios";
 
 export default function AddSemester() {
@@ -14,55 +13,92 @@ export default function AddSemester() {
 
   const submit = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("token");
-    
 
-    const res = await axios.post("http://localhost:5000/api/semesters", form, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    nav(`/semester/${res.data._id}/dashboard`);
+    try {
+      const res = await axios.post("http://localhost:5000/api/semesters", form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Navigating to setup landing first is usually better for new sems
+      nav(`/semester/${res.data._id}/setup`);
+    } catch (err) {
+      console.error("Create semester failed", err);
+    }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "60px auto" }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>Glad to see you back <p style={{ margin: 0, color: "#555" }}>{user?.name}👋</p> </h2>
-        
+    <div className="min-h-screen bg-midnight p-6 flex items-center justify-center">
+      {/* Background Decor */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-neon-cyan/5 rounded-full blur-[100px]"></div>
       </div>
-      <BackButton />
-      <h2>Add Semester</h2>
 
-      <form onSubmit={submit}>
-        <input
-          placeholder="Semester name"
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <br />
-        <br />
+      <div className="w-full max-w-md glass-panel p-10 rounded-[2.5rem] border-white/10">
+        {/* Back Navigation */}
+        <button 
+          onClick={() => nav(-1)}
+          className="mb-8 text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-tighter"
+        >
+          ← Back
+        </button>
 
-        <label>Start Date</label>
-        <input
-          type="date"
-          onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-          required
-        />
-        <br />
-        <br />
+        <header className="mb-10">
+          <h2 className="text-white text-sm font-bold uppercase tracking-[0.2em] mb-2 opacity-60">
+            Welcome back, {user?.name.split(' ')[0]} 👋
+          </h2>
+          <h1 className="text-3xl font-black text-white italic tracking-tighter">
+            ADD <span className="text-neon-cyan">SEMESTER</span>
+          </h1>
+          <div className="h-[2px] w-12 bg-neon-cyan mt-2"></div>
+        </header>
 
-        <label>End Date</label>
-        <input
-          type="date"
-          onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-          required
-        />
-        <br />
-        <br />
+        <form onSubmit={submit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+              Semester Name
+            </label>
+            <input
+              placeholder="e.g. 3rd Year - 1st Sem"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+              className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white placeholder:text-slate-600 outline-none focus:border-neon-cyan focus:ring-4 focus:ring-neon-cyan/10 transition-all font-medium"
+            />
+          </div>
 
-        <button>Create Semester</button>
-      </form>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={form.startDate}
+                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none focus:border-neon-cyan transition-all font-medium [color-scheme:dark]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={form.endDate}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none focus:border-neon-cyan transition-all font-medium [color-scheme:dark]"
+              />
+            </div>
+          </div>
+
+          <button className="w-full py-5 mt-4 bg-neon-cyan text-midnight font-black text-lg rounded-[2rem] shadow-[0_15px_30px_rgba(34,211,238,0.2)] hover:shadow-neon-cyan/40 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer">
+            CREATE SEMESTER
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
