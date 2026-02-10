@@ -1,15 +1,17 @@
 import Subject from "../models/subject.model.js";
-import Student from "../models/student.model.js";
+import Attendance from "../models/attendance.model.js";
 
 export const getEligibilityReport = async (req, res) => {
   try {
-    const student = await Student.findOne();
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+    const { semesterId } = req.query;
+
+    if (!semesterId) {
+      return res.status(400).json({ message: "semesterId required" });
     }
 
-    const subjects = await Subject.find();
-    const P = student.eligibilityPercentage; // usually 75
+    const subjects = await Subject.find({ semesterId });
+
+    const P = 75; // required attendance percentage
 
     let overall = {
       totalPlanned: 0,
@@ -18,49 +20,40 @@ export const getEligibilityReport = async (req, res) => {
       status: "SAFE",
     };
 
-    const report = subjects.map((sub) => {
+    const report = [];
+
+    for (const sub of subjects) {
       const T = sub.totalPlannedClasses;
-      const A = sub.attendedClasses;
-      const M = sub.missedClasses;
 
+      const attendance = await Attendance.find({
+        semesterId,
+        subject: sub.name,
+      });
+
+      const A = attendance.filter(
+        (a) => a.status === "Present"
+      ).length;
+
+      const M = attendance.filter(
+        (a) => a.status === "Absent"
+      ).length;
+
+      // Core calculations
       const requiredAttend = Math.ceil((P / 100) * T);
-      const maxMissAllowed = T - requiredAttend;
-      const safeMissLeft = maxMissAllowed - M;
       const classesToAttendMore = Math.max(requiredAttend - A, 0);
-      const remainingClasses = T - (A + M);
+      const remaining = T - (A + M);
 
-
-      // predictor simulations
-const missOne = safeMissLeft - 1;
-const missTwo = safeMissLeft - 2;
-
-const predictStatus = (value) => {
-  if (value > 2) return "SAFE";
-  if (value >= 0) return "BORDER";
-  return "DANGER";
-};
-
-const predictor = {
-  miss1Class: {
-    safeMissLeft: missOne,
-    status: predictStatus(missOne),
-  },
-  miss2Classes: {
-    safeMissLeft: missTwo,
-    status: predictStatus(missTwo),
-  },
-  attendAllRemaining: {
-    safeMissLeft: maxMissAllowed - M,
-    status: predictStatus(maxMissAllowed - M),
-  },
-};
-
+      // 🔥 FIXED SAFE MISS LOGIC (REALISTIC)
+      const safeMissLeft = Math.max(
+        remaining - classesToAttendMore,
+        0
+      );
 
       let status = "SAFE";
       if (safeMissLeft <= 2 && safeMissLeft >= 0) status = "BORDER";
       if (safeMissLeft < 0) status = "DANGER";
 
-      // overall calc
+      // Overall aggregation
       overall.totalPlanned += T;
       overall.totalAttended += A;
 
@@ -68,25 +61,24 @@ const predictor = {
       else if (status === "BORDER" && overall.status !== "DANGER")
         overall.status = "BORDER";
 
-      return {
+      report.push({
         subject: sub.name,
         totalClasses: T,
         attended: A,
         missed: M,
-        remaining: remainingClasses,
-
+        remaining,
         requiredAttend,
         classesToAttendMore,
-        maxMissAllowed,
         safeMissLeft,
-
         status,
-        predictor,
-      };
-    });
+      });
+    }
 
     overall.percentage = overall.totalPlanned
-      ? ((overall.totalAttended / overall.totalPlanned) * 100).toFixed(2)
+      ? (
+          (overall.totalAttended / overall.totalPlanned) *
+          100
+        ).toFixed(2)
       : 0;
 
     res.json({

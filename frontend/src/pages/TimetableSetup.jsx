@@ -2,7 +2,14 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 export default function TimetableSetup() {
   const { semesterId } = useParams();
@@ -12,35 +19,46 @@ export default function TimetableSetup() {
     DAYS.reduce((acc, day) => {
       acc[day] = "";
       return acc;
-    }, {})
+    }, {}),
   );
 
   const handleChange = (day, value) => {
     setTimetable({ ...timetable, [day]: value });
   };
 
-  const handleSave = async () => {
-    const token = localStorage.getItem("token");
+ const handleSave = async () => {
+  const token = localStorage.getItem("token");
 
-    // Convert comma-separated subjects to array
-    const formatted = Object.entries(timetable).map(
-      ([day, subjects]) => ({
-        day,
-        subjects: subjects
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      })
-    );
+  const formatted = Object.entries(timetable).map(
+    ([day, subjects]) => ({
+      day,
+      subjects: subjects
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    })
+  );
+
+  // ✅ SAVE ONLY DAYS THAT HAVE SUBJECTS
+  for (const dayObj of formatted) {
+    if (dayObj.subjects.length === 0) continue;
 
     await axios.post(
       `http://localhost:5000/api/timetable/${semesterId}`,
-      { timetable: formatted },
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        day: dayObj.day,
+        subjects: dayObj.subjects,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
+  }
 
-    navigate(`/semester/${semesterId}/setup/subjects`);
-  };
+  navigate(`/semester/${semesterId}/setup/subjects`);
+};
+
+
 
   return (
     <div style={{ maxWidth: 700, margin: "40px auto" }}>
@@ -48,15 +66,13 @@ export default function TimetableSetup() {
 
       <h2 style={{ marginTop: 20 }}>Weekly Timetable Setup</h2>
       <p>
-        Enter subjects conducted on each day.  
-        Separate multiple subjects with commas.
+        Enter subjects conducted on each day. Separate multiple subjects with
+        commas.
       </p>
 
       {DAYS.map((day) => (
         <div key={day} style={{ marginBottom: 12 }}>
-          <label style={{ display: "block", fontWeight: "bold" }}>
-            {day}
-          </label>
+          <label style={{ display: "block", fontWeight: "bold" }}>{day}</label>
           <input
             type="text"
             placeholder="e.g. Anatomy, Physiology"

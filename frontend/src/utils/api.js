@@ -4,7 +4,24 @@ const api = axios.create({
   baseURL: "http://localhost:5000/api",
 });
 
-export const getEligibility = () => api.get("/eligibility");
+
+// 🔐 Automatically attach token to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+
+
+export const getEligibility = (semesterId) =>
+  api.get(`/eligibility?semesterId=${semesterId}`);
+
 
 export const getTimetableByDay = (day) =>
   api.get(`/timetable/${day}`);
@@ -23,8 +40,9 @@ export const getTodayAttendance = (date) =>
 export const getFullTimetable = () =>
   api.get("/timetable");
 
-export const getAbsentHistory = () =>
-  api.get("/attendance/absent");
+export const getAbsentHistory = (semesterId) =>
+  api.get(`/attendance/absent/${semesterId}`);
+
 
 
 export const registerUser = (data) =>

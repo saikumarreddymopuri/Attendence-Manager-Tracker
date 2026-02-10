@@ -1,11 +1,7 @@
-const getStatus = (percent) => {
-  if (percent < 65) {
-    return { text: "DANGER", color: "#f44336" };
-  }
-  if (percent < 75) {
-    return { text: "NEED TO BE STRICT", color: "#ff9800" };
-  }
-  return { text: "SAFE", color: "#4caf50" };
+const STATUS_COLORS = {
+  SAFE: "#4caf50",
+  BORDER: "#ff9800",
+  DANGER: "#f44336",
 };
 
 export default function OverallCard({ overall }) {
@@ -15,12 +11,19 @@ export default function OverallCard({ overall }) {
     (overall.totalAttended / overall.totalPlanned) * 100
   );
 
-  const status = getStatus(percentage);
+  const status = overall.status; // 🔥 USE BACKEND STATUS
+  const color = STATUS_COLORS[status];
+
+  const needToAttend = Math.max(
+    0,
+    Math.ceil(overall.totalPlanned * 0.75) -
+      overall.totalAttended
+  );
 
   return (
     <div
       style={{
-        border: `2px solid ${status.color}`,
+        border: `2px solid ${color}`,
         padding: 16,
         borderRadius: 8,
         marginBottom: 20,
@@ -33,7 +36,7 @@ export default function OverallCard({ overall }) {
         style={{
           fontSize: 28,
           fontWeight: "bold",
-          color: status.color,
+          color,
           marginBottom: 12,
         }}
       >
@@ -50,34 +53,29 @@ export default function OverallCard({ overall }) {
           marginBottom: 18,
         }}
       >
-        {/* Filled part */}
         <div
           style={{
             width: `${percentage}%`,
-            background: status.color,
+            background: color,
             height: "100%",
             borderRadius: 8,
           }}
         />
 
-        {/* 75% Target Badge */}
+        {/* 75% Marker */}
         <div
           style={{
             position: "absolute",
             left: "75%",
-            top: -28,
+            top: -26,
             transform: "translateX(-50%)",
-            background: "#000",
-            color: "#fff",
             fontSize: 11,
-            padding: "2px 6px",
-            borderRadius: 4,
+            color: "#555",
           }}
         >
-          75% Target
+          75%
         </div>
 
-        {/* Target pointer */}
         <div
           style={{
             position: "absolute",
@@ -85,7 +83,7 @@ export default function OverallCard({ overall }) {
             top: 0,
             height: "100%",
             width: 2,
-            background: "#000",
+            background: "#555",
           }}
         />
       </div>
@@ -97,19 +95,16 @@ export default function OverallCard({ overall }) {
         classes attended
       </div>
 
-      {/* 🔥 FIXED: Need to Attend WITH NUMBER */}
       <div style={{ marginBottom: 6 }}>
-  <strong>Need to Attend (to reach 75%):</strong>{" "}
-  <strong>{Math.max(0, Math.ceil(overall.totalPlanned * 0.75) - overall.totalAttended)}</strong>{" "}
-  classes
-</div>
+        <strong>Need to Attend:</strong>{" "}
+        <strong>{needToAttend}</strong> classes
+      </div>
 
-
-      {/* 🔥 FIXED: Status text matches color */}
+      {/* Status */}
       <div>
         Status:{" "}
-        <strong style={{ color: status.color }}>
-          {status.text}
+        <strong style={{ color }}>
+          {status}
         </strong>
       </div>
     </div>

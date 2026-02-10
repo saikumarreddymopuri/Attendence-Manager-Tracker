@@ -1,57 +1,44 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { getAbsentHistory } from "../../utils/api";
 
 export default function AbsentTable() {
+  const { semesterId } = useParams();
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    getAbsentHistory().then((res) => {
-      setData(res.data);
-    });
-  }, []);
+    getAbsentHistory(semesterId).then((res) =>
+      setData(res.data)
+    );
+  }, [semesterId]);
 
   if (data.length === 0) {
-    return <p>🎉 No absents recorded</p>;
+    return <p>No absences recorded 🎉</p>;
   }
 
-  // GROUP BY DATE
-  const grouped = data.reduce((acc, item) => {
-    if (!acc[item.date]) {
-      acc[item.date] = [];
-    }
-    acc[item.date].push(item.subject);
-    return acc;
-  }, {});
-
   return (
-    <div style={{ marginTop: 20 }}>
-      {Object.entries(grouped).map(([date, subjects]) => {
-        const day = new Date(date).toLocaleDateString("en-US", {
-          weekday: "long",
-        });
+    <div>
+      {data.map((day) => (
+        <div
+          key={day.date}
+          style={{
+            border: "1px solid #ccc",
+            padding: 12,
+            borderRadius: 8,
+            marginBottom: 14,
+          }}
+        >
+          <h3 style={{ marginBottom: 8 }}>
+            📅 {day.date}
+          </h3>
 
-        return (
-          <div
-            key={date}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 12,
-            }}
-          >
-            <strong>
-              📅 {day} – {date}
-            </strong>
-
-            <ul style={{ marginTop: 8 }}>
-              {subjects.map((sub, idx) => (
-                <li key={idx}>❌ {sub}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+          <ul style={{ marginLeft: 16 }}>
+            {day.subjects.map((sub, idx) => (
+              <li key={idx}>❌ {sub}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }

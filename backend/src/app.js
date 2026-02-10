@@ -7,6 +7,7 @@ import attendanceRoutes from "./routes/attendance.routes.js";
 import eligibilityRoutes from "./routes/eligibility.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import semesterRoutes from "./routes/semester.routes.js";
+import subjectRoutes from "./routes/subject.routes.js";
 
 
 import dotenv from "dotenv";
@@ -25,6 +26,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/eligibility", eligibilityRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/semesters", semesterRoutes);
+app.use("/api/subjects", subjectRoutes);
 
 app.get("/", (req, res) => {
   res.send("MedAttend Backend Running");

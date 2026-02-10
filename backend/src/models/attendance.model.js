@@ -27,7 +27,7 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// prevent duplicate marking per subject per day per semester
+// One attendance per subject per day per semester
 attendanceSchema.index(
   { semesterId: 1, date: 1, subject: 1 },
   { unique: true }

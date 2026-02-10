@@ -16,10 +16,15 @@ import SemesterSelection from "./pages/SemesterSelection";
 import AddSemester from "./pages/AddSemester";
 import SetupLanding from "./pages/SetupLanding";
 import TimetableSetup from "./pages/TimetableSetup";
+import SubjectSetup from "./pages/SubjectSetup";
+// import useShouldShowNavbar from "./hooks/useShouldShowNavbar";
 
 import SemesterSetupGuard from "./components/SemesterSetupGuard";
 
 function App() {
+
+  // const showNavbar = useShouldShowNavbar();
+
   return (
     <BrowserRouter>
       <Navbar />
@@ -75,6 +80,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <TimetableSetup />
+              </ProtectedRoute>
+            }
+          />
+          {/* ================= SUBJECT SETUP (GUARDED) ================= */}
+          <Route
+            path="/semester/:semesterId/setup/subjects"
+            element={
+              <ProtectedRoute>
+                <SubjectSetup />
               </ProtectedRoute>
             }
           />

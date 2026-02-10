@@ -4,13 +4,13 @@ import {
   getTimetableByDay,
   getFullTimetable,
 } from "../controllers/timetable.controller.js";
+import { protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/", setTimetable);
-router.get("/", getFullTimetable);
-router.get("/:day", getTimetableByDay);
-
-
+// semester-specific routes
+router.post("/:semesterId", protect, setTimetable);
+router.get("/:semesterId", protect, getFullTimetable);
+router.get("/:semesterId/:day", protect, getTimetableByDay);
 
 export default router;

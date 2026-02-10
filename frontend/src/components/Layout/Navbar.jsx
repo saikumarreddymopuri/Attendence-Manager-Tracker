@@ -10,6 +10,24 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+   
+
+  // ❌ hide navbar on these routes
+  const hideOn = [
+    "/login",
+    "/register",
+    "/select-semester",
+    "/add-semester",
+  ];
+
+  // hide on setup pages also
+  if (
+    hideOn.includes(location.pathname) ||
+    location.pathname.includes("/setup")
+  ) {
+    return null;
+  }
+
   const token = localStorage.getItem("token");
   if (!token) return null;
 

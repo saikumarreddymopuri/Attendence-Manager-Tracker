@@ -1,72 +1,83 @@
 import Attendance from "../models/attendance.model.js";
-import Subject from "../models/subject.model.js";
+import Timetable from "../models/timetable.model.js";
 
-/* -------------------------------------------
-   1) MARK ATTENDANCE (LOCKED)
--------------------------------------------- */
+// Get today's subjects + existing attendance
+export const getTodayAttendance = async (req, res) => {
+  const { semesterId } = req.params;
+
+  const today = new Date();
+  const date = today.toLocaleDateString("en-CA");
+  const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
+
+  // Get today's timetable
+  const timetable = await Timetable.findOne({
+    semesterId,
+    day: dayName,
+  });
+
+  const subjects = timetable ? timetable.subjects : [];
+
+  // Get already marked attendance
+  const marked = await Attendance.find({
+    semesterId,
+    date,
+  });
+
+  res.json({
+    date,
+    day: dayName,
+    subjects,
+    marked,
+  });
+};
+
+// Mark attendance (present/absent)
 export const markAttendance = async (req, res) => {
   try {
-    const { date, subject, status } = req.body;
+    const { semesterId } = req.params;
+    const { subject, status, date } = req.body;
 
-    // 🔒 check if already marked
-    const exists = await Attendance.findOne({ date, subject });
-    if (exists) {
-      return res
-        .status(400)
-        .json({ message: "Attendance already marked" });
-    }
-
-    // save attendance
-    await Attendance.create({ date, subject, status });
-
-    // update subject counts
-    if (status === "Present") {
-      await Subject.findOneAndUpdate(
-        { name: subject },
-        { $inc: { attendedClasses: 1 } }
-      );
-    } else {
-      await Subject.findOneAndUpdate(
-        { name: subject },
-        { $inc: { missedClasses: 1 } }
-      );
-    }
-
-    res.json({ message: "Attendance marked successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-/* -------------------------------------------
-   2) GET TODAY'S ATTENDANCE (LOCK UI)
--------------------------------------------- */
-export const getTodayAttendance = async (req, res) => {
-  try {
-    const { date } = req.query;
-
-    const records = await Attendance.find(
-      { date },
-      { _id: 0, subject: 1, status: 1 }
+    const record = await Attendance.findOneAndUpdate(
+      { semesterId, date, subject },
+      { status },
+      { upsert: true, new: true }
     );
 
-    res.json(records);
+    res.json(record);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
-/* -------------------------------------------
-   3) GET ABSENT HISTORY (ONLY ABSENT)
--------------------------------------------- */
+
+
+// Get absent history (day-wise) for a semester
 export const getAbsentHistory = async (req, res) => {
   try {
-    const absents = await Attendance.find(
-      { status: "Absent" },
-      { _id: 0, date: 1, subject: 1 }
-    ).sort({ date: -1 });
+    const { semesterId } = req.params;
 
-    res.json(absents);
+    const absents = await Attendance.find({
+      semesterId,
+      status: "Absent",
+    }).sort({ date: -1 });
+
+    // Group by date
+    const grouped = {};
+
+    absents.forEach((a) => {
+      if (!grouped[a.date]) {
+        grouped[a.date] = [];
+      }
+      grouped[a.date].push(a.subject);
+    });
+
+    // Convert to array for frontend
+    const result = Object.keys(grouped).map((date) => ({
+      date,
+      subjects: grouped[date],
+    }));
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

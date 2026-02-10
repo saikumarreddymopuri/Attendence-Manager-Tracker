@@ -1,95 +1,120 @@
 import { useEffect, useState } from "react";
-import {
-  getTimetableByDay,
-  getTodayAttendance,
-  markAttendance,
-} from "../../utils/api";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function TodayAttendance() {
-  const today = new Date();
-  const dateStr = today.toISOString().split("T")[0];
-  const dayName = today.toLocaleDateString("en-US", {
-    weekday: "long",
-  });
+  const { semesterId } = useParams();
+  const token = localStorage.getItem("token");
 
-  const [subjects, setSubjects] = useState([]);
-  const [markedMap, setMarkedMap] = useState({});
+  const [data, setData] = useState(null);
+  const [editSubject, setEditSubject] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      // 1️⃣ get today's subjects
-      const timetableRes = await getTimetableByDay(dayName);
-      const todaysSubjects = timetableRes.data?.subjects || [];
+    fetchToday();
+  }, []);
 
-      // 2️⃣ get today's attendance (DB truth)
-      const attendanceRes = await getTodayAttendance(dateStr);
-      const marked = {};
-      attendanceRes.data.forEach((a) => {
-        marked[a.subject] = a.status;
-      });
-
-      setSubjects(todaysSubjects);
-      setMarkedMap(marked);
-    };
-
-    loadData();
-  }, [dayName, dateStr]);
-
-  const handleMark = async (subject, status) => {
-    await markAttendance({
-      date: dateStr,
-      subject,
-      status,
-    });
-
-    // lock UI immediately
-    setMarkedMap((prev) => ({
-      ...prev,
-      [subject]: status,
-    }));
+  const fetchToday = async () => {
+    const res = await axios.get(
+      `http://localhost:5000/api/attendance/today/${semesterId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setData(res.data);
   };
+
+  const markAttendance = async (subject, status) => {
+    await axios.post(
+      `http://localhost:5000/api/attendance/mark/${semesterId}`,
+      {
+        subject,
+        status,
+        date: data.date,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    setEditSubject(null);
+    fetchToday();
+
+    // notify dashboard
+    window.dispatchEvent(new Event("attendance-updated"));
+  };
+
+  if (!data) return <p>Loading today...</p>;
 
   return (
     <div>
-      <h2>Today – {dayName}</h2>
+      <h3>
+        Today – {data.day} ({data.date})
+      </h3>
 
-      {subjects.length === 0 && (
-        <p>No classes scheduled today 🎉</p>
-      )}
+      {data.subjects.length === 0 && <p>No classes today 🎉</p>}
 
-      {subjects.map((sub) => (
-        <div
-          key={sub}
-          style={{
-            border: "1px solid #ccc",
-            padding: 10,
-            borderRadius: 6,
-            marginBottom: 10,
-          }}
-        >
-          <strong>{sub}</strong>
+      {data.subjects.map((subject) => {
+        const marked = data.marked.find(
+          (m) => m.subject === subject
+        );
 
-          {markedMap[sub] ? (
-            <p style={{ marginTop: 6 }}>
-              Marked: <b>{markedMap[sub]}</b>
-            </p>
-          ) : (
-            <div style={{ marginTop: 6 }}>
-              <button
-                onClick={() => handleMark(sub, "Present")}
-                style={{ marginRight: 10 }}
-              >
-                ✅ Present
-              </button>
-              <button
-                onClick={() => handleMark(sub, "Absent")}
-              >
-                ❌ Absent
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+        const isEditing = editSubject === subject;
+
+        return (
+          <div
+            key={subject}
+            style={{
+              border: "1px solid #ccc",
+              padding: 12,
+              borderRadius: 8,
+              marginBottom: 12,
+            }}
+          >
+            <strong>{subject}</strong>
+
+            {/* STATUS VIEW */}
+            {marked && !isEditing && (
+              <div style={{ marginTop: 6 }}>
+                <p>
+                  Status:{" "}
+                  <strong>{marked.status}</strong>
+                </p>
+                <button
+                  onClick={() => setEditSubject(subject)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                  }}
+                >
+                  ✏️ Update
+                </button>
+              </div>
+            )}
+
+            {/* MARK / UPDATE VIEW */}
+            {(!marked || isEditing) && (
+              <div style={{ marginTop: 6 }}>
+                <button
+                  onClick={() =>
+                    markAttendance(subject, "Present")
+                  }
+                >
+                  Present
+                </button>
+                <button
+                  onClick={() =>
+                    markAttendance(subject, "Absent")
+                  }
+                  style={{ marginLeft: 10 }}
+                >
+                  Absent
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

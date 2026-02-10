@@ -18,20 +18,18 @@ const subjectSchema = new mongoose.Schema(
       required: true,
     },
 
-    attendedClasses: {
+    requiredPercentage: {
       type: Number,
-      default: 0,
-    },
-
-    missedClasses: {
-      type: Number,
-      default: 0,
+      default: 75,
     },
   },
   { timestamps: true }
 );
 
-// prevent duplicate subject names PER semester
-subjectSchema.index({ semesterId: 1, name: 1 }, { unique: true });
+// One subject per semester
+subjectSchema.index(
+  { semesterId: 1, name: 1 },
+  { unique: true }
+);
 
 export default mongoose.model("Subject", subjectSchema);

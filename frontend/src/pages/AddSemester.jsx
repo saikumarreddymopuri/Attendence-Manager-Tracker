@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BackButton from "../components/Common/BackButton";
 import axios from "axios";
 
 export default function AddSemester() {
@@ -30,7 +31,7 @@ export default function AddSemester() {
         <h2 style={{ margin: 0 }}>Glad to see you back <p style={{ margin: 0, color: "#555" }}>{user?.name}👋</p> </h2>
         
       </div>
-
+      <BackButton />
       <h2>Add Semester</h2>
 
       <form onSubmit={submit}>
