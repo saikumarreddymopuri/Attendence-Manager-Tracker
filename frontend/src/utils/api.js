@@ -1,7 +1,8 @@
 import axios from "axios";
 
+
 const api = axios.create({
-  baseURL: "https://attendence-bhavitha.vercel.app",
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 

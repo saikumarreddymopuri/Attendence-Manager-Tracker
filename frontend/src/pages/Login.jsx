@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import { loginUser } from "../utils/api";
+
+
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,10 +16,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await axios.post(
-        "https://attendence-bhavitha.vercel.app/auth/login",
-        { email, password }
-      );
+      const res = await loginUser({ email, password });
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
