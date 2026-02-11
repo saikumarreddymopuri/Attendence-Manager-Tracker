@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { registerUser } from "../utils/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,10 +12,17 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", { name, email, password });
+      const res = await registerUser({
+        name,
+        email,
+        password,
+      });
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Register failed");
@@ -24,7 +31,6 @@ export default function Register() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-6">
-      {/* Background Decor - Subtle, not annoying */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-neon-purple/5 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-neon-cyan/5 rounded-full blur-[100px]"></div>
@@ -35,7 +41,9 @@ export default function Register() {
           <h2 className="text-3xl font-bold text-white tracking-tight">
             Create <span className="text-neon-cyan font-black">Account.</span>
           </h2>
-          <p className="text-slate-500 text-sm mt-2 font-medium">Get started with Attendly manager</p>
+          <p className="text-slate-500 text-sm mt-2 font-medium">
+            Get started with Attendly manager
+          </p>
         </header>
 
         {error && (
@@ -50,7 +58,7 @@ export default function Register() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 cyan-glow-border text-white placeholder:text-slate-600 outline-none"
+            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 text-white outline-none"
           />
 
           <input
@@ -59,7 +67,7 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 cyan-glow-border text-white placeholder:text-slate-600 outline-none"
+            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 text-white outline-none"
           />
 
           <input
@@ -68,12 +76,12 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 cyan-glow-border text-white placeholder:text-slate-600 outline-none"
+            className="w-full px-5 py-4 rounded-2xl bg-midnight/50 text-white outline-none"
           />
 
-          <button 
-            type="submit" 
-            className="w-full py-4 mt-2 bg-neon-cyan hover:bg-cyan-400 text-[#0a0f1d] font-bold text-lg rounded-2xl shadow-lg shadow-neon-cyan/20 active:scale-95 transition-all cursor-pointer"
+          <button
+            type="submit"
+            className="w-full py-4 mt-2 bg-neon-cyan text-[#0a0f1d] font-bold text-lg rounded-2xl transition-all"
           >
             Sign Up
           </button>
@@ -82,7 +90,10 @@ export default function Register() {
         <footer className="mt-8 text-center border-t border-white/5 pt-6">
           <p className="text-slate-500 text-sm font-medium">
             Already have an account?{" "}
-            <Link to="/login" className="text-neon-cyan hover:text-white transition-colors ml-1">
+            <Link
+              to="/login"
+              className="text-neon-cyan hover:text-white transition-colors ml-1"
+            >
               Login here
             </Link>
           </p>

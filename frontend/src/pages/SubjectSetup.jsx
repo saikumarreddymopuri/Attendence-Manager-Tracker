@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import api from "../../utils/api";
 
 export default function SubjectSetup() {
   const { semesterId } = useParams();
@@ -11,25 +12,22 @@ export default function SubjectSetup() {
 
   useEffect(() => {
     const fetchSubjects = async () => {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `http://localhost:5000/api/timetable/${semesterId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  const res = await api.get(`/timetable/${semesterId}`);
 
-      const uniqueSubjects = [
-        ...new Set(res.data.flatMap((d) => d.subjects)),
-      ];
+  const uniqueSubjects = [
+    ...new Set(res.data.flatMap((d) => d.subjects)),
+  ];
 
-      const prepared = uniqueSubjects.map((name) => ({
-        name,
-        totalPlannedClasses: "",
-        requiredPercentage: 75,
-      }));
+  const prepared = uniqueSubjects.map((name) => ({
+    name,
+    totalPlannedClasses: "",
+    requiredPercentage: 75,
+  }));
 
-      setSubjects(prepared);
-      setLoading(false);
-    };
+  setSubjects(prepared);
+  setLoading(false);
+};
+
     fetchSubjects();
   }, [semesterId]);
 
@@ -40,29 +38,22 @@ export default function SubjectSetup() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-
-    for (const s of subjects) {
-      if (!s.totalPlannedClasses) {
-        alert(`Please enter total classes for ${s.name}, buddy!`);
-        return;
-      }
+  for (const s of subjects) {
+    if (!s.totalPlannedClasses) {
+      alert(`Please enter total classes for ${s.name}`);
+      return;
     }
+  }
 
-    await axios.post(
-      `http://localhost:5000/api/subjects/${semesterId}`,
-      { subjects },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  await api.post(`/subjects/${semesterId}`, { subjects });
 
-    await axios.patch(
-      `http://localhost:5000/api/semesters/${semesterId}/complete-setup`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  await api.patch(
+    `/semesters/${semesterId}/complete-setup`
+  );
 
-    navigate(`/semester/${semesterId}/dashboard`);
-  };
+  navigate(`/semester/${semesterId}/dashboard`);
+};
+
 
   if (loading) return (
     <div className="min-h-screen bg-midnight flex items-center justify-center">

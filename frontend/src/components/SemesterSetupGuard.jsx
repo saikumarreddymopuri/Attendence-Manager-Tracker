@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 
 export default function SemesterSetupGuard({ children }) {
   const { semesterId } = useParams();
@@ -9,21 +9,13 @@ export default function SemesterSetupGuard({ children }) {
 
   useEffect(() => {
     const checkSetup = async () => {
-      const token = localStorage.getItem("token");
-
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/semesters/${semesterId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await api.get(`/semesters/${semesterId}`);
 
-        // 🔒 If setup NOT completed → go to setup landing
         if (!res.data.isSetupComplete) {
           navigate(`/semester/${semesterId}/setup`);
         } else {
-          setChecking(false); // allow children
+          setChecking(false);
         }
       } catch (err) {
         console.error("Setup guard failed", err);
@@ -34,7 +26,11 @@ export default function SemesterSetupGuard({ children }) {
   }, [semesterId, navigate]);
 
   if (checking) {
-    return <p>Checking semester setup...</p>;
+    return (
+      <div className="min-h-screen bg-midnight flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return children;

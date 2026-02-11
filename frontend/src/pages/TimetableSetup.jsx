@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import api from "../../utils/api";
+
 
 const DAYS = [
   "Monday",
@@ -27,35 +29,28 @@ export default function TimetableSetup() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
+  const formatted = Object.entries(timetable).map(
+    ([day, subjects]) => ({
+      day,
+      subjects: subjects
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    })
+  );
 
-    const formatted = Object.entries(timetable).map(
-      ([day, subjects]) => ({
-        day,
-        subjects: subjects
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      })
-    );
+  for (const dayObj of formatted) {
+    if (dayObj.subjects.length === 0) continue;
 
-    for (const dayObj of formatted) {
-      if (dayObj.subjects.length === 0) continue;
+    await api.post(`/timetable/${semesterId}`, {
+      day: dayObj.day,
+      subjects: dayObj.subjects,
+    });
+  }
 
-      await axios.post(
-        `http://localhost:5000/api/timetable/${semesterId}`,
-        {
-          day: dayObj.day,
-          subjects: dayObj.subjects,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    }
+  navigate(`/semester/${semesterId}/setup/subjects`);
+};
 
-    navigate(`/semester/${semesterId}/setup/subjects`);
-  };
 
   return (
     <div className="min-h-screen bg-midnight pb-20 p-6 md:p-12">

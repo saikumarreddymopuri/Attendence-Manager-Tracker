@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 
 export default function AddSemester() {
   const nav = useNavigate();
@@ -9,17 +9,15 @@ export default function AddSemester() {
     startDate: "",
     endDate: "",
   });
+
   const user = JSON.parse(localStorage.getItem("user"));
 
   const submit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/semesters", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Navigating to setup landing first is usually better for new sems
+      const res = await api.post("/semesters", form);
+
       nav(`/semester/${res.data._id}/setup`);
     } catch (err) {
       console.error("Create semester failed", err);
@@ -28,14 +26,12 @@ export default function AddSemester() {
 
   return (
     <div className="min-h-screen bg-midnight p-6 flex items-center justify-center">
-      {/* Background Decor */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-neon-cyan/5 rounded-full blur-[100px]"></div>
       </div>
 
       <div className="w-full max-w-md glass-panel p-10 rounded-[2.5rem] border-white/10">
-        {/* Back Navigation */}
-        <button 
+        <button
           onClick={() => nav(-1)}
           className="mb-8 text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-tighter"
         >
@@ -44,11 +40,13 @@ export default function AddSemester() {
 
         <header className="mb-10">
           <h2 className="text-white text-sm font-bold uppercase tracking-[0.2em] mb-2 opacity-60">
-            Welcome back, {user?.name.split(' ')[0]} 👋
+            Welcome back, {user?.name.split(" ")[0]} 👋
           </h2>
+
           <h1 className="text-3xl font-black text-white italic tracking-tighter">
             ADD <span className="text-neon-cyan">SEMESTER</span>
           </h1>
+
           <div className="h-[2px] w-12 bg-neon-cyan mt-2"></div>
         </header>
 
@@ -57,12 +55,15 @@ export default function AddSemester() {
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
               Semester Name
             </label>
+
             <input
               placeholder="e.g. 3rd Year - 1st Sem"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, name: e.target.value })
+              }
               required
-              className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white placeholder:text-slate-600 outline-none focus:border-neon-cyan focus:ring-4 focus:ring-neon-cyan/10 transition-all font-medium"
+              className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none"
             />
           </div>
 
@@ -71,12 +72,18 @@ export default function AddSemester() {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
                 Start Date
               </label>
+
               <input
                 type="date"
                 value={form.startDate}
-                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    startDate: e.target.value,
+                  })
+                }
                 required
-                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none focus:border-neon-cyan transition-all font-medium [color-scheme:dark]"
+                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none"
               />
             </div>
 
@@ -84,17 +91,23 @@ export default function AddSemester() {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
                 End Date
               </label>
+
               <input
                 type="date"
                 value={form.endDate}
-                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    endDate: e.target.value,
+                  })
+                }
                 required
-                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none focus:border-neon-cyan transition-all font-medium [color-scheme:dark]"
+                className="w-full px-6 py-4 rounded-2xl bg-midnight/50 border border-white/5 text-white outline-none"
               />
             </div>
           </div>
 
-          <button className="w-full py-5 mt-4 bg-neon-cyan text-midnight font-black text-lg rounded-[2rem] shadow-[0_15px_30px_rgba(34,211,238,0.2)] hover:shadow-neon-cyan/40 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer">
+          <button className="w-full py-5 mt-4 bg-neon-cyan text-midnight font-black text-lg rounded-[2rem] transition-all cursor-pointer">
             CREATE SEMESTER
           </button>
         </form>
