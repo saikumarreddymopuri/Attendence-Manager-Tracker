@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 // import axios from "axios";
-import api from "../../utils/api";
+import api from "../utils/api";
 
 
 const DAYS = [
